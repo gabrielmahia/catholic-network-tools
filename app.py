@@ -18,9 +18,13 @@ from src.spiritual_os.models import (
 )
 from src.spiritual_os.aggregation import AggregationEngine, QueryBuilder
 from src.spiritual_os.ui.mobile_css import inject_mobile_css
+from src.spiritual_os.context_aware import ContextDetector, AdaptiveUI
 
 # Inject mobile-responsive CSS
 inject_mobile_css()
+
+# Detect user context (connection speed, device, location)
+user_context = ContextDetector.detect()
 
 # Configure page
 st.set_page_config(
@@ -29,6 +33,57 @@ st.set_page_config(
     layout="wide",
     initial_sidebar_state="expanded"
 )
+
+# LANGUAGE SWITCHER (Top of sidebar)
+st.sidebar.markdown("### 🌍 Language / Lugha / Langue")
+
+language_options = {
+    "English": "en",
+    "Swahili (Kiswahili)": "sw",
+    "Luganda": "lg",
+    "Français": "fr",
+    "Español": "es",
+}
+
+selected_language = st.sidebar.selectbox(
+    "Choose language",
+    options=list(language_options.keys()),
+    index=0,
+    key="language_selector",
+    label_visibility="collapsed"
+)
+
+# Store language in session
+st.session_state["language"] = language_options[selected_language]
+
+# Context awareness settings (Advanced)
+with st.sidebar.expander("⚙️ Advanced Settings"):
+    st.caption("**Connection & Display**")
+    
+    connection_pref = st.selectbox(
+        "Connection Speed",
+        ["Auto-detect", "4G/WiFi (Fast)", "3G (Medium)", "2G (Slow)", "Offline Mode"],
+        help="Adapt interface to your connection"
+    )
+    
+    connection_map = {
+        "4G/WiFi (Fast)": "4g",
+        "3G (Medium)": "3g",
+        "2G (Slow)": "2g",
+        "Offline Mode": "offline",
+    }
+    
+    if connection_pref != "Auto-detect":
+        st.session_state["connection_speed"] = connection_map[connection_pref]
+    
+    data_saver = st.checkbox(
+        "Data Saver Mode",
+        value=st.session_state.get("data_saver", False),
+        help="Reduce bandwidth usage (no images, minimal data)"
+    )
+    st.session_state["data_saver"] = data_saver
+
+st.sidebar.divider()
 
 st.markdown("""
     <style>
